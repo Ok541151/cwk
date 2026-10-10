@@ -1,0 +1,8 @@
+# dsh-agent-picker bundle patch: one insert registering the plugin row.
+# The plugin adds a button to the right of the composer (client half) and a
+# small JSON route listing the external Agent CLIs found on this machine
+# (host half). dsh mounts this layer for every profile that lists
+# `dsh-agent-picker` in `dsh.profile.bundles`.
+- insert:
+    - id: agent-picker
+      name: 'dsh-agent-picker'

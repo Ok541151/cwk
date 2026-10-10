@@ -1,0 +1,17 @@
+# 依赖与本地测试设施
+node_modules/
+*.log
+npm-debug.log*
+
+# 本地开发/测试产物
+.tmp/
+.DS_Store
+Thumbs.db
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+
+# 本机专属记录（不上架）
+说明.md

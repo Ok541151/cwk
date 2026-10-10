@@ -1,0 +1,13 @@
+# 统一按 LF 存储，避免跨平台行尾漂移把 diff 搞乱
+* text=auto eol=lf
+
+# 明确按文本处理
+*.js   text eol=lf
+*.mjs  text eol=lf
+*.json text eol=lf
+*.yml  text eol=lf
+*.md   text eol=lf
+
+# Git 看到的二进制
+*.png binary
+*.jpg binary
