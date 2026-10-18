@@ -32,6 +32,7 @@
     "url": "https://github.com/Ok541151/cwk/issues"
   },
   "files": [
+    "CHANGELOG.md",
     "lib",
     "agents.json",
     "cordis.patch.yml",
