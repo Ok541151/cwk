@@ -103,18 +103,22 @@ C:\some\where\x.ps1      ->  原样保留（你想钉死绝对路径时用）
 | **Ollama** | `run qwen3:4b {task}` | — | 见下方条件 |
 | **opencode** | `run {task}` | — | 未验证 |
 | **Crush** | `run {task}` | — | 未验证 |
+| **Cursor CLI** | `-p --trust {task}` | `--mode plan` / `--force` | 官方 `--help` 实测记录 ✓ |
+| **Kimi** | `-p {task}` | 非交互模式自带 auto 权限 | 官方文档 ✓ |
 
 ### 🔍 只识别、不给配方（会显示"需配置启动方式"）
 
-`Cursor CLI` · `Kimi` · `GitHub Copilot CLI` · `Trae` · `Amp` · `Droid` · `Augment Code` ·
+`GitHub Copilot CLI` · `Trae` · `Amp` · `Droid` · `Augment Code` ·
 `OpenHands` · `Cline` · `Windsurf` · `ZCode` · `Qoder` · `CodeBuddy` · `Grok CLI` ·
 `OpenClaw` · `Roo Code` · `Kilo Code` · `CodeWhale` · `Pi` · `WorkBuddy`
 
 这些出现在列表里时是这样的：
 
 ```
-○ Cursor CLI     已检测到，需配置启动方式
-  自动发现（…\cursor-agent.CMD）；识别到 CLI，但还没有启动配方
+○ GitHub Copilot CLI     已检测到，需配置启动方式
+  自动发现（…\copilot.CMD）；识别到 CLI，但还没有启动配方
+  ─────────────────────────────────────────────
+  GitHub 官方的命令行 Copilot，和 GitHub 生态贴得最近。
   —— 用约定目录或名册补一条 launch 就能调用
 ```
 
