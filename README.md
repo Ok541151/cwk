@@ -81,10 +81,10 @@ C:\some\where\x.ps1      ->  原样保留（你想钉死绝对路径时用）
 
 ## 各 Agent 的兼容性（实测声明）
 
-内置识别 **28 个** Agent 名字。分两类：
+内置识别 **27 个** Agent 名字。分两类：
 
 - **11 个带启动配方** → 探测到即可直接调用
-- **17 个只识别** → 探测到会出现在列表里（带名字和介绍），但需要你补一条启动配方才能真正调用
+- **16 个只识别** → 探测到会出现在列表里（带名字和介绍），但需要你补一条启动配方才能真正调用
 
 > 为什么不全给配方：启动参数写错比不写更糟 —— 那会变成"列表里能点，一点就报错"。
 > 所以只有参数经过验证的才给配方，其余诚实标成"需配置"。
@@ -109,7 +109,7 @@ C:\some\where\x.ps1      ->  原样保留（你想钉死绝对路径时用）
 
 `GitHub Copilot CLI` · `Trae` · `Amp` · `Droid` · `Augment Code` ·
 `OpenHands` · `Cline` · `Windsurf` · `ZCode` · `Qoder` · `CodeBuddy` · `Grok CLI` ·
-(`OpenClaw` · `Kilo Code` · `CodeWhale` · `Crush` · `WorkBuddy`)
+(`OpenClaw` · `Kilo Code` · `Crush` · `WorkBuddy`)
 
 这些出现在列表里时是这样的：
 
