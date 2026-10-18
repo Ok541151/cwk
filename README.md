@@ -81,10 +81,10 @@ C:\some\where\x.ps1      ->  原样保留（你想钉死绝对路径时用）
 
 ## 各 Agent 的兼容性（实测声明）
 
-内置识别 **30 个** Agent 名字。分两类：
+内置识别 **28 个** Agent 名字。分两类：
 
-- **10 个带启动配方** → 探测到即可直接调用
-- **20 个只识别** → 探测到会出现在列表里（带名字和介绍），但需要你补一条启动配方才能真正调用
+- **11 个带启动配方** → 探测到即可直接调用
+- **17 个只识别** → 探测到会出现在列表里（带名字和介绍），但需要你补一条启动配方才能真正调用
 
 > 为什么不全给配方：启动参数写错比不写更糟 —— 那会变成"列表里能点，一点就报错"。
 > 所以只有参数经过验证的才给配方，其余诚实标成"需配置"。
@@ -101,8 +101,7 @@ C:\some\where\x.ps1      ->  原样保留（你想钉死绝对路径时用）
 | **Codex** | `exec --skip-git-repo-check {task}` | `-s read-only` / `workspace-write` / `danger-full-access` | 取自已跑通的包装脚本 |
 | **Claude Code** | `-p {task}` | `--permission-mode plan` / `acceptEdits` / `bypassPermissions` | 取自官方参数（未本机复核） |
 | **Ollama** | `run qwen3:4b {task}` | — | 见下方条件 |
-| **opencode** | `run {task}` | — | 未验证 |
-| **Crush** | `run {task}` | — | 未验证 |
+| **opencode** | `run {task}` | — | 官方文档给出 `run` 子命令；**未实机跑过** |
 | **Cursor CLI** | `-p --trust {task}` | `--mode plan` / `--force` | 官方 `--help` 实测记录 ✓ |
 | **Kimi** | `-p {task}` | 非交互模式自带 auto 权限 | 官方文档 ✓ |
 
@@ -110,7 +109,7 @@ C:\some\where\x.ps1      ->  原样保留（你想钉死绝对路径时用）
 
 `GitHub Copilot CLI` · `Trae` · `Amp` · `Droid` · `Augment Code` ·
 `OpenHands` · `Cline` · `Windsurf` · `ZCode` · `Qoder` · `CodeBuddy` · `Grok CLI` ·
-`OpenClaw` · `Roo Code` · `Kilo Code` · `CodeWhale` · `Pi` · `WorkBuddy`
+(`OpenClaw` · `Kilo Code` · `CodeWhale` · `Crush` · `WorkBuddy`)
 
 这些出现在列表里时是这样的：
 
@@ -122,7 +121,40 @@ C:\some\where\x.ps1      ->  原样保留（你想钉死绝对路径时用）
   —— 用约定目录或名册补一条 launch 就能调用
 ```
 
-**补一条配方就能变成可调用**（见上面的「名册：怎么加一个新 Agent」）。
+### 怎么补一条配方（插件里有现成引导）
+
+**不用翻这份文档** —— 在列表里点那一行的 **「怎么补？▼」**，会就地展开三步：
+
+1. **查出它的参数** —— 命令里已经填好这个 CLI 的真实路径，一键复制：
+   `"C:\...\copilot.CMD" --help`
+2. **找“一次性执行”的标志** —— `--prompt` / `-p` / `exec` / `run` 这类
+3. **存成约定目录里的文件** —— 路径和模板都由插件给出，`id` / 名字 / `bin` 已填好，
+   你只改 `argv` 这一行，模板可一键复制：
+
+```json
+{
+  "id": "copilot",
+  "name": "GitHub Copilot CLI",
+  "tool": "cli_copilot_direct",
+  "kind": "task",
+  "launch": { "bin": "C:\\AgentTools\\cli\\copilot.CMD", "argv": ["-p", "{task}"] }
+}
+```
+
+存好后**重启 DSH**，它就会从「可安装」升到主列表。
+
+> 引导是**纯提示**，不写盘、不拦截 —— 现在不想配也完全可以，那一行就安静待着。
+
+### 关于探测名的取舍
+
+探测名越短越容易**误报**（机器上有个同名的无关程序，就会被当成某个 agent）。
+所以本项目有一条硬规则：**只接受 4 个字符以上的探测名** —— `amp` 是唯一例外，
+因为它是 Sourcegraph 官方 CLI 名。`Pi`、`Roo Code` 这类既有条目因此被移除，
+而不是靠猜名字去凑数量。
+
+另外 **Crush 目前只识别、不给配方**：Charm 的仓库里有一个未关闭的 issue 在请求
+“非交互批处理模式”（`charmbracelet/crush#1030`），说明 `crush run <任务>` 这条路
+当时并不存在。猜一个不存在的子命令 = 用户点了必报错，所以宁可不给。
 
 ### ⚠️ 需要额外条件
 
