@@ -59,7 +59,11 @@ C:\some\where\x.ps1      ->  原样保留（你想钉死绝对路径时用）
 
 ### 占位符
 
-`argv` 里可用的占位符：`{task}`（任务正文）、`{permission}`、`{model}`、`{image}`。
+`argv` 里可用的占位符：`{task}`（任务正文）、`{permflags}`、`{permission}`、`{model}`、`{image}`。
+
+**`{permflags}` 是特殊的**：它会展开成**多个**参数，取值来自名册里的
+`permFlags[<权限档>]`；没指定权限档时取 `defaultPermFlags`。
+所以一条模板就能携带"权限档 → 这个 CLI 自己的 flag"的映射，调用方不必知道每个 CLI 的语法。
 
 **`{image}` 只对命令行真的支持图片参数的 CLI 有意义**（例如 Codex 的 `-i/--image`）。
 其余 CLI 就算它自己有读图能力，也**不是**靠这个占位符——那种情况请把图片路径写进任务正文，
@@ -67,14 +71,72 @@ C:\some\where\x.ps1      ->  原样保留（你想钉死绝对路径时用）
 
 ## 你需要自备什么
 
-这个插件**只负责调度，不附带任何 Agent**。要用哪个，请自行安装并确认它在命令行可用：
+这个插件**只负责调度，不附带任何 Agent**。装好一个 CLI，它就会被自动发现并列出来。
 
-Claude Code · Codex · Qwen Code · Gemini CLI · Aider · Goose · Hermes · OpenClaw · Ollama …
+探测来源（按顺序）：`PATH` → 托管目录（`~/dsh-clis/bin`，可用 `DSH_AGENT_PICKER_CLI_DIR` 覆盖）
+→ `~/.local/bin`。
 
-插件按 `cliBinDir` 下的包装器探测可用性；**探测不到的成员不会出现在可选区**。
+**出厂名册是空的，这是有意的** —— 列表里的成员全部来自"本机实际探测"。
+所以别人机器上看到的列表，取决于他装了哪些 CLI。
 
-> 封装脚本的写法与各 CLI 的接入细节，取决于你接哪个模型端点、有哪些凭据。
-> 这部分**不在本插件范围内**，请按你自己的环境准备。
+## 各 Agent 的兼容性（实测声明）
+
+这张表是**测出来的**，不是照文档抄的。分三档：
+
+### ✅ 已实测可调用（启动参数经 `--help` 复核）
+
+| Agent | 启动参数 | 权限映射 |
+|---|---|---|
+| **Aider** | `--message {task}` | `--dry-run` / `--yes-always` |
+| **Qwen Code** | `-p {task}` | `--approval-mode plan` / `yolo` |
+| **Gemini CLI** | `-p {task}` | `--approval-mode plan` / `yolo` |
+| **Goose** | `run -t {task}` | — |
+| **Hermes** | `-z {task}` | — |
+
+### ✅ 可用，但参数取自作者本机已验证的包装脚本（未在干净环境复核 `--help`）
+
+| Agent | 启动参数 | 权限映射 |
+|---|---|---|
+| **Codex** | `exec --skip-git-repo-check {task}` | `-s read-only` / `workspace-write` / `danger-full-access` |
+| **Claude Code** | `-p {task}` | `--permission-mode plan` / `acceptEdits` / `bypassPermissions` |
+
+### ⚠️ 需要额外条件
+
+| Agent | 条件 |
+|---|---|
+| **Ollama** | 本机要有 ollama 服务在跑；配方里模型名写死为 `qwen3:4b`，装的是别的模型请改名册或约定目录 |
+| **Gemini CLI** | 还要一个协议翻译层（如 LiteLLM）把你的端点转成 Gemini 协议 |
+| **Qwen Code** | 需要 `DEEPSEEK_API_KEY`（它自己读 `~/.qwen/.env`） |
+| **Goose** | 需要 `GOOSE_PROVIDER` / `GOOSE_MODEL` / `OPENAI_API_KEY` / `OPENAI_HOST` |
+| **opencode / Crush** | 配方是 `run {task}`，**未验证**，可能还需要各自的非交互参数 |
+
+### ❗ 已知陷阱：**探测到 ≠ 能调用**
+
+别只看它出现在列表里就以为能用。两种典型失败：
+
+1. **悬空的 npm shim**（最常见）。用 `npm i -g` 装过某个 CLI、之后又把包删了，
+   `claude.cmd` 这类 shim 会留下，但它指向的 `xxx.exe` 已经不在了。
+   探测只检查 shim 文件存在 → 判定"已安装"；调用时子进程报 **"系统找不到指定的路径"**。
+   → 处理：重装那个 CLI，或删掉残留 shim。
+2. **缺凭据 / 缺服务**。这类成员会标「待配置」并写明缺什么，但仍然可以被选中 ——
+   点下去才会失败。
+
+**自查这个 shim 还活着吗**：
+
+```powershell
+Get-Content (Get-Command <cmd>).Source     # 看它指向哪个 exe，再去那个路径看还在不在
+```
+
+## 参数与权限
+
+工具参数里有一个可选的 `permission`，取值 `read-only` / `workspace-write` / `danger-full-access`。
+
+**它会被翻译成每个 CLI 自己的参数**（见上表），不是本插件自己实施的控制：
+
+- **不传时用默认档**（Codex 是 `workspace-write`，Aider/Qwen/Claude 是自动批准那一档）。
+  这不是偏好问题：无头执行没有人去点「允许」，默认档必须是"不会卡在审批上"的那个，
+  否则每次调用都会等到超时。
+- 想精确控制就显式传 `permission`，或者写自己的名册配方（`permFlags`）。
 
 ## 参数约定
 
