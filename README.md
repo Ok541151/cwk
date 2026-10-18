@@ -81,24 +81,44 @@ C:\some\where\x.ps1      ->  原样保留（你想钉死绝对路径时用）
 
 ## 各 Agent 的兼容性（实测声明）
 
-这张表是**测出来的**，不是照文档抄的。分三档：
+内置识别 **30 个** Agent 名字。分两类：
 
-### ✅ 已实测可调用（启动参数经 `--help` 复核）
+- **10 个带启动配方** → 探测到即可直接调用
+- **20 个只识别** → 探测到会出现在列表里（带名字和介绍），但需要你补一条启动配方才能真正调用
 
-| Agent | 启动参数 | 权限映射 |
-|---|---|---|
-| **Aider** | `--message {task}` | `--dry-run` / `--yes-always` |
-| **Qwen Code** | `-p {task}` | `--approval-mode plan` / `yolo` |
-| **Gemini CLI** | `-p {task}` | `--approval-mode plan` / `yolo` |
-| **Goose** | `run -t {task}` | — |
-| **Hermes** | `-z {task}` | — |
+> 为什么不全给配方：启动参数写错比不写更糟 —— 那会变成"列表里能点，一点就报错"。
+> 所以只有参数经过验证的才给配方，其余诚实标成"需配置"。
 
-### ✅ 可用，但参数取自作者本机已验证的包装脚本（未在干净环境复核 `--help`）
+### ✅ 有启动配方（探测到即可调用）
 
-| Agent | 启动参数 | 权限映射 |
-|---|---|---|
-| **Codex** | `exec --skip-git-repo-check {task}` | `-s read-only` / `workspace-write` / `danger-full-access` |
-| **Claude Code** | `-p {task}` | `--permission-mode plan` / `acceptEdits` / `bypassPermissions` |
+| Agent | 启动参数 | 权限映射 | 参数验证 |
+|---|---|---|---|
+| **Aider** | `--message {task}` | `--dry-run` / `--yes-always` | `--help` 复核 ✓ |
+| **Qwen Code** | `-p {task}` | `--approval-mode plan` / `yolo` | `--help` 复核 ✓ |
+| **Gemini CLI** | `-p {task}` | `--approval-mode plan` / `yolo` | `--help` 复核 ✓ |
+| **Goose** | `run -t {task}` | — | `--help` 复核 ✓ |
+| **Hermes** | `-z {task}` | — | `--help` 复核 ✓ |
+| **Codex** | `exec --skip-git-repo-check {task}` | `-s read-only` / `workspace-write` / `danger-full-access` | 取自已跑通的包装脚本 |
+| **Claude Code** | `-p {task}` | `--permission-mode plan` / `acceptEdits` / `bypassPermissions` | 取自官方参数（未本机复核） |
+| **Ollama** | `run qwen3:4b {task}` | — | 见下方条件 |
+| **opencode** | `run {task}` | — | 未验证 |
+| **Crush** | `run {task}` | — | 未验证 |
+
+### 🔍 只识别、不给配方（会显示"需配置启动方式"）
+
+`Cursor CLI` · `Kimi` · `GitHub Copilot CLI` · `Trae` · `Amp` · `Droid` · `Augment Code` ·
+`OpenHands` · `Cline` · `Windsurf` · `ZCode` · `Qoder` · `CodeBuddy` · `Grok CLI` ·
+`OpenClaw` · `Roo Code` · `Kilo Code` · `CodeWhale` · `Pi` · `WorkBuddy`
+
+这些出现在列表里时是这样的：
+
+```
+○ Cursor CLI     已检测到，需配置启动方式
+  自动发现（…\cursor-agent.CMD）；识别到 CLI，但还没有启动配方
+  —— 用约定目录或名册补一条 launch 就能调用
+```
+
+**补一条配方就能变成可调用**（见上面的「名册：怎么加一个新 Agent」）。
 
 ### ⚠️ 需要额外条件
 
@@ -108,18 +128,18 @@ C:\some\where\x.ps1      ->  原样保留（你想钉死绝对路径时用）
 | **Gemini CLI** | 还要一个协议翻译层（如 LiteLLM）把你的端点转成 Gemini 协议 |
 | **Qwen Code** | 需要 `DEEPSEEK_API_KEY`（它自己读 `~/.qwen/.env`） |
 | **Goose** | 需要 `GOOSE_PROVIDER` / `GOOSE_MODEL` / `OPENAI_API_KEY` / `OPENAI_HOST` |
-| **opencode / Crush** | 配方是 `run {task}`，**未验证**，可能还需要各自的非交互参数 |
 
 ### ❗ 已知陷阱：**探测到 ≠ 能调用**
 
-别只看它出现在列表里就以为能用。两种典型失败：
+别只看它出现在列表里就以为能用。三种典型情况：
 
-1. **悬空的 npm shim**（最常见）。用 `npm i -g` 装过某个 CLI、之后又把包删了，
+1. **没配方的**（上面那 20 个）。列表里会明确写「需配置启动方式」——
+   它只是"我看到了你装了这个"，不是"我能用它"。
+2. **悬空的 npm shim**（最常见）。用 `npm i -g` 装过某个 CLI、之后又把包删了，
    `claude.cmd` 这类 shim 会留下，但它指向的 `xxx.exe` 已经不在了。
    探测只检查 shim 文件存在 → 判定"已安装"；调用时子进程报 **"系统找不到指定的路径"**。
    → 处理：重装那个 CLI，或删掉残留 shim。
-2. **缺凭据 / 缺服务**。这类成员会标「待配置」并写明缺什么，但仍然可以被选中 ——
-   点下去才会失败。
+3. **缺凭据 / 缺服务**。这类成员在「可安装」区标「已安装，待配置」并写明缺什么。
 
 **自查这个 shim 还活着吗**：
 
