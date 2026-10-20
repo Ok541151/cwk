@@ -5,6 +5,37 @@
 
 ---
 
+## 0.5.2
+
+**一句话：修掉"明明装了却探测不到"。**
+
+### 你遇到的
+
+那台机器上 claude、codex 都装着，但插件一个都没认出来 —— 列表里那两行其实来自
+旧名册，带着作者机器上的文案，点了也调不动。
+
+原因是它们**都不在 PATH 上**：
+
+| Agent | 实际位置 | 为什么没被发现 |
+|---|---|---|
+| claude / qwen | `npm i -g` 装到 `%APPDATA%\npm` | DSH 从图形界面启动时，PATH 里常常没有这个目录 |
+| codex | ChatGPT 桌面版带的 `%LOCALAPPDATA%\OpenAI\Codex\bin\<哈希>\codex.exe` | 不在 PATH，也不在固定目录，每次更新哈希名还会变 |
+
+### 现在
+
+除了 PATH，还会主动搜这几个位置：
+
+- `%APPDATA%\npm`、`%LOCALAPPDATA%\npm`（npm 全局）
+- `~/.npm-global/bin`、`~/.local/bin`（POSIX 的 npm / pipx）
+- `%LOCALAPPDATA%\OpenAI\Codex\bin\*\codex.exe`（ChatGPT 桌面版，按修改时间取最新的）
+
+### 你要做什么
+
+**升级后重启 DSH 即可。** 装着的 claude / codex 会自己出现在列表里，
+名字和介绍也会换成你这台机器的。
+
+---
+
 ## 0.5.1
 
 **一句话：修掉"升到 0.5.0 还是不管用"。**
