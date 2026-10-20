@@ -49,8 +49,5 @@
     "gemini",
     "ollama"
   ],
-  "engines": {
-    "node": ">=22"
-  },
   "license": "MIT"
 }
