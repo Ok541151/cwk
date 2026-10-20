@@ -141,7 +141,7 @@ C:\some\where\x.ps1      ->  原样保留（你想钉死绝对路径时用）
   "name": "GitHub Copilot CLI",
   "tool": "cli_copilot_direct",
   "kind": "task",
-  "launch": { "bin": "C:\\AgentTools\\cli\\copilot.CMD", "argv": ["-p", "{task}"] }
+  "launch": { "bin": "C:\\你的路径\\copilot.CMD", "argv": ["-p", "{task}"] }
 }
 ```
 
