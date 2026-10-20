@@ -29,6 +29,15 @@
 - `~/.npm-global/bin`、`~/.local/bin`（POSIX 的 npm / pipx）
 - `%LOCALAPPDATA%\OpenAI\Codex\bin\*\codex.exe`（ChatGPT 桌面版，按修改时间取最新的）
 
+### 另外三处（自检时发现的）
+
+- **列表里不再出现你这台机器没有的 Agent** —— 以前那些来自旧名册。
+  例外：**正被选中的那个永远可见**，否则你没有入口把它切走。
+- **名册里写裸名（`bin: "claude"`）也能认出来**，不会因为它在
+  `%APPDATA%\npm` 里就被判成"没装"然后被隐藏。
+- **没有权限开关的 CLI 会明说** —— goose / hermes / opencode / kimi 这类不认
+  "只读 / 可改 / 全放行"，现在列表里直接写出来，不再让你以为它受管辖。
+
 ### 你要做什么
 
 **升级后重启 DSH 即可。** 装着的 claude / codex 会自己出现在列表里，
