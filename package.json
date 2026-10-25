@@ -1,6 +1,6 @@
 {
   "name": "dsh-agent-picker",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "Agent 模式选择器：像推理档位那样选定一个外部 Agent CLI（Claude Code / Codex / Qwen / Gemini / Aider / Goose / Hermes / OpenClaw / Ollama…）作为默认执行体。Agent 目录是数据驱动的：加一个新 Agent 只需加一条数据，不必改代码。",
   "type": "module",
   "main": "./lib/index.js",

@@ -5,6 +5,47 @@
 
 ---
 
+---
+
+## 0.5.5
+
+**一句话：日志开始记录"点下去之后发生了什么"。**
+
+### 为什么
+
+0.5.4 在那台机器上完全按设计工作了 —— 日志证明得很清楚：
+
+```
+启动：dsh-agent-picker v0.5.4 · node v24.18.1 · win32 · DSH_HOME=C:\Users\<你>\.dsh
+用自动发现的配方修好了名册里 2 项：codex, claude
+跳过 openclaw / qwen / hermes / aider / goose / gemini / ollama / draw / video
+```
+
+可它还是"没成功"。问题在于：**日志只记注册，不记调用** —— 你按下按钮之后
+claude 到底启动没有、退出码是什么、stderr 说了什么，一个字都没有。
+所以每一轮报告只能证明"插件配置对"，证明不了"执行失败在哪"。
+
+### 现在
+
+gent-picker.log 里新增三类行：
+
+```
+调用 claude：…\npm\claude.CMD · 正文 42 字 · permission=workspace-write
+返回 claude：ok=false exit=1 用时=830ms · error=… · stderr=…
+  argv claude：["-p","--permission-mode","acceptEdits","<正文>"]
+ 自愈 codex -> …\codex.EXE ["exec","--skip-git-repo-check","{permflags}","{task}"]
+```
+
+- **调用 / 返回**：谁被调用、耗时、退出码、错误与 stderr 开头（正文只记字数，不记内容）
+- **argv**：失败时把**展开后的完整参数**记下来，一眼看出是不是参数拼错
+- **自愈**：修成了什么配方（bin 是哪个、argv 长什么样）
+
+### 你要做什么
+
+升级重启，再点一次那个 Agent。**无论成功还是失败，把 %USERPROFILE%\.dsh\agent-picker.log
+的最后 20 行发我** —— 有了上面这三类行，就不必再猜了。
+
+---
 ## 0.5.4
 
 **一句话：只让真能跑的 Agent 出现在可选项里；日志开始记版本号。**
