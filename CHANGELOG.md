@@ -5,6 +5,51 @@
 
 ---
 
+## 0.6.1
+
+**一句话：修掉"点名了就报 graceMs 错"的那个 bug —— 自愈出来的配方是半成品。**
+
+### 你遇到的
+
+真机日志（2026-10-29 04:36:43）第一次抓到了调用结果：
+
+```
+调用 claude：…\AppData\Roaming\npm\claude.CMD · 正文 99 字
+返回 claude：ok=false 用时=5ms · error=无法启动 …\claude.CMD：
+  subprocess graceMs must be a positive finite number no greater than 2147483647
+```
+
+**工具在、选中也对、闸门也放行 —— 但一启动就被宿主拒绝。**
+
+### 根因
+
+名册里那行"跑不起来"的条目被**自动发现接管**时，插件手搓了一个只含
+`bin` / `argv` 的配方对象，**没有走 `parseLaunch`** —— 于是
+`graceMs` / `timeoutMs` / `maxBytes` 全是 `undefined`，而宿主对 `graceMs`
+是**强校验**，直接拒绝启动。
+
+**为什么一直没发现**：作者本机 11 条都手写配方（走 `parseLaunch`，默认值齐全），
+只有"名册那行坏了、靠自愈接管"的机器才会踩到 —— 也就是另一台机器的 claude。
+
+### 现在
+
+- 自愈出来的配方**必须经过 `parseLaunch`**，默认值一定补齐
+  （graceMs=30s、timeoutMs、maxBytes 都在）
+- 失败日志**同时记 stdout**（以前只记 stderr，等于让人对着半句话猜）
+
+### 还剩一件不是 bug 的事
+
+那台机器上 `claude -p` 直接说：
+
+```
+Not logged in · Please run /login
+```
+
+**这是 CLI 没登录，跟插件无关。** 在那台机器上开一次 `claude`，输入 `/login` 登录，
+之后就能真正跑通。
+
+---
+
 ## 0.6.0
 
 **一句话：旧版本的残留会自己清掉。列表 = 这台机器上真有的东西。**
