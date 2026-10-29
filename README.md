@@ -42,7 +42,8 @@ dsh plugin add dsh-agent-picker
 | `expertise` | 菜单里显示的「擅长」一行 |
 | `note` | 健康状态／接线说明 |
 | `desc` | 展开后的详细能力介绍 |
-| `launch` | **可选**。自带执行配方：`bin` / `argv` / `env` / `timeoutMs` / `graceMs` / `maxBytes`。写了它，本插件就自己注册 `cli_<id>_direct` 工具 |
+| `launch` | **可选**。自带执行配方：`bin` / `argv` / `env` / `keepEnv` / `timeoutMs` / `graceMs` / `maxBytes`。写了它，本插件就自己注册 `cli_<id>_direct` 工具 |
+| `launch.keepEnv` | **可选**。要从父进程继承的环境变量名白名单（**名字里带 `KEY`/`TOKEN`/`SECRET`/`PASSWORD` 的变量默认会被剥离**，靠环境变量授权的 CLI 必须写在这里） |
 | `keep` | **可选**。写 `true` 表示**永不自动清理**（见下面"旧版残留会自动清理"） |
 
 改完**重启 DSH** 生效。
@@ -193,6 +194,19 @@ C:\some\where\x.ps1      ->  原样保留（你想钉死绝对路径时用）
 | **Gemini CLI** | 还要一个协议翻译层（如 LiteLLM）把你的端点转成 Gemini 协议 |
 | **Qwen Code** | 需要 `DEEPSEEK_API_KEY`（它自己读 `~/.qwen/.env`） |
 | **Goose** | 需要 `GOOSE_PROVIDER` / `GOOSE_MODEL` / `OPENAI_API_KEY` / `OPENAI_HOST` |
+
+> ⚠️ **上表里名字带 `KEY` 的变量，默认不会被传给子进程**（见下面"安全边界"一节）。
+> 如果你就是靠环境变量给它授权，请在名册该条目里显式白名单：
+>
+> ```json
+> "launch": {
+>   "bin": "goose",
+>   "argv": ["run", "-t", "{task}"],
+>   "keepEnv": ["OPENAI_API_KEY", "OPENAI_HOST", "GOOSE_PROVIDER", "GOOSE_MODEL"]
+> }
+> ```
+>
+> 不写 `keepEnv` 也能用 —— 只要那个 CLI 自己把凭据存在配置文件里（Claude Code、Codex 桌面版都是这种）。
 
 ### 平台支持（诚实版）
 
